@@ -1,0 +1,27 @@
+{$DOMAIN} {
+        # If you need logs
+        #  log {
+        #    level INFO
+        #    output file {$LOG_FILE} {
+        #      roll_size 10MB
+        #      roll_keep 10
+        #    }
+        #  }
+
+        # Uncomment this if you want to get a cert via ACME (Let's Encrypt or ZeroSSL).
+        # tls {$EMAIL}
+
+  	# Or uncomment this if you're providing your own cert. You would also use this option
+  	# if you're running behind Cloudflare.
+  	tls {$SSL_CERT_PATH} {$SSL_KEY_PATH}
+
+        basicauth /* {
+                # https://bcrypt-generator.com/
+                admin $2a$12$K97rl.CgT7Us6J.Lh2HeMev.1UI.v5W7yalu1zCzi6p/j8UYNIyV2
+        }
+
+        # Proxy everything else to Dozzle
+        reverse_proxy dozzle:8080 {
+                header_up X-Real-IP {remote_host}
+        }
+}

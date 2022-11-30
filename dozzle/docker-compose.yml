@@ -1,0 +1,29 @@
+# docker-compose.yml
+# Don't forget to modify the .env file
+version: '3'
+
+services:
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DOZZLE_NO_ANALYTICS: true
+
+  caddy:
+    image: caddy:latest
+    container_name: dozzle_caddy
+    restart: always
+    ports:
+      - 9443:443
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./ssl/server.key:/etc/caddy/server.key
+      - ./ssl/server.crt:/etc/caddy/server.crt
+    environment:
+      DOMAIN: "localhost"  # Your domain.
+      LOG_FILE: "/data/access.log"
+      SSL_CERT_PATH: "/etc/caddy/server.crt"
+      SSL_KEY_PATH: "/etc/caddy/server.key"
