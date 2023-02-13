@@ -1,11 +1,21 @@
 #!/bin/bash
-openssl genrsa -out server.key 2048
+# This script will generate a certificate for usage with your application
+# Make sure to edit .env before running this script
+#================ Internal ==============
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) 
+source $SCRIPT_DIR/.env
+#================ Script ==============
+cd "$SCRIPT_DIR"/../certs || exit 1
+
+[ -n "$BYPASS_SERVER_KEY_FILE_PATH" ] && SERVER_KEY_FILE_PATH="$BYPASS_SERVER_KEY_FILE_PATH"
+[ -n "$BYPASS_SERVER_CN" ] && SERVER_CN="$BYPASS_SERVER_CN"
+
+openssl genrsa -out "$SERVER_KEY_FILE_PATH" 2048
 cat > csr.conf <<EOF
 [ req ]
 default_bits = 2048
 prompt = no
 default_md = sha256
-req_extensions = req_ext
 distinguished_name = dn
 
 [ dn ]
@@ -14,14 +24,6 @@ ST = Hamerkaz
 L = Tel-Aviv
 O = Org
 OU = DevSecOps
-CN = CN
-
-[ req_ext ]
-subjectAltName = @alt_names
-
-[ alt_names ]
-DNS.1 = localhost
-DNS.2 = dns2
-IP.1 = 127.0.0.1
+CN = ${SERVER_CN}
 
 EOF
