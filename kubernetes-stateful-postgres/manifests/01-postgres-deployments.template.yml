@@ -1,0 +1,63 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-configuration
+  namespace: $NAMESPACE
+data:
+  POSTGRES_DB: "postgres"
+  POSTGRES_USER: "$POSTGRES_USER"
+  POSTGRES_PASSWORD: "$POSTGRES_PASSWORD"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql-db-demo
+  labels:
+    app: postgresql-db-demo
+  namespace: $NAMESPACE
+spec:
+  serviceName: postgresql-db-service
+  selector:
+    matchLabels:
+      app: postgresql-db-demo
+  template:
+    metadata:
+      labels:
+        app: postgresql-db-demo
+    spec:
+      securityContext:
+        fsGroup: 999
+      containers:
+      - name: postgressql-db
+        image: postgres:11.2
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 5432
+        envFrom:
+        - configMapRef:
+            name: postgres-configuration
+        volumeMounts:
+        - name: backend-certs
+          mountPath: "/etc/certs/"
+          readOnly: true
+        args: ["-c", "ssl=on", "-c", "ssl_cert_file=/etc/certs/server.crt", "-c", "ssl_key_file=/etc/certs/server.key"]
+      volumes:
+      - name: backend-certs
+        secret:
+          secretName: $NAMESPACE-certs
+          defaultMode: 384
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-db-lb
+  namespace: $NAMESPACE
+spec:
+  type: LoadBalancer
+  selector:
+   app: postgresql-db-demo
+  ports:
+   - protocol: TCP
+     port: 5432
+     targetPort: 5432
