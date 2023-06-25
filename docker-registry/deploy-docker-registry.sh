@@ -5,6 +5,6 @@ docker run -d \
     -v $(pwd)/certs:/certs \
     -e REGISTRY_HTTP_ADDR=0.0.0.0:5443 \
     -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/server.pem \
-    -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+    -e REGISTRY_HTTP_TLS_KEY=/certs/server.key \
     -p 5443:443 \
     registry:latest
