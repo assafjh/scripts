@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: kube-system
+data:
+  aws-pub-lab.server: | # you may select any name here, but it must end with the .server file extension
+    aws-pub-lab {
+      hosts {
+        172.16.0.128 aws-pub-lab
+        ttl 60
+        reload 15s
+        fallthrough
+      }
+    }
