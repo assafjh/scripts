@@ -7,7 +7,7 @@ cli=$onprem
 
 [ $# -lt 3 ] && printf "expecting three parameters. for cloud cli, add 4th param with the value \"true\"\nSyntax: delete.sh <OBJECT_TYPE> <BRANCH> <OBJECT_PATH>\n delete.sh <OBJECT_TYPE> <BRANCH> <OBJECT_PATH> true\n" && exit 1
 
-SUPPORTED_OBJECT_TYPES=("variable" "policy" "webservice" "host" "user" "layer" "group")
+SUPPORTED_OBJECT_TYPES=("variable" "policy" "webservice" "host" "user" "layer" "group" "host-factory" )
 
 ! [[ " ${SUPPORTED_OBJECT_TYPES[*]} " =~ " ${1} " ]] && echo "Supported object types: ${SUPPORTED_OBJECT_TYPES[*]}" && exit 1
 
