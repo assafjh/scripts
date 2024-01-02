@@ -1,0 +1,13 @@
+---
+- hosts: aws-pub-lab
+
+  tasks:
+
+  - name: Print machine name
+    shell: hostname -f
+    args:
+      executable: /bin/bash
+
+  - name: Lookup variable in Conjur
+    debug:
+      msg: "{{ lookup('cyberark.conjur.conjur_variable', 'data/ansible/apps/safe/secret2') }}"

@@ -1,0 +1,8 @@
+---
+- hosts: aws-pub-lab
+
+  tasks:
+  - name: Print machine name
+    shell: hostname -f
+    args:
+      executable: /bin/bash

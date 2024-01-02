@@ -1,0 +1,3 @@
+machine https://aws-pub-lab/authn
+login host/data/ansible/apps/conjur-demo
+password 12345678
