@@ -1,29 +1,24 @@
 #!/bin/bash
-# This script will add the generated rootCA to the OS truststore
+# This script will remove the generated rootCA from the OS truststore
 
 #================ Internal ==============
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 #================ Variables ==============
-CERTIFICATE_FILE_PATH="$SCRIPT_DIR/certs/rootCA.pem"
+CERTIFICATE_HASH="$SCRIPT_DIR/certs/rootCA.pem"
 
 #================ Script ==============
-if [[ ! -f "$CERTIFICATE_FILE_PATH" ]]; then
-    echo "Certificate file not found: $CERTIFICATE_FILE_PATH"
-    return 1
-fi
-
 OS_NAME=$(uname -s)
 
 case "$OS_NAME" in
     Linux*)
         if command -v update-ca-certificates &> /dev/null; then
             # Debian/Ubuntu
-            sudo cp "$CERTIFICATE_FILE_PATH" /usr/local/share/ca-certificates/
-            sudo update-ca-certificates
+            sudo rm "/usr/local/share/ca-certificates/$CERTIFICATE_HASH.crt"
+            sudo update-ca-certificates --fresh
         elif command -v update-ca-trust &> /dev/null; then
             # CentOS/RHEL
-            sudo cp "$CERTIFICATE_FILE_PATH" /etc/pki/ca-trust/source/anchors/
+            sudo rm "/etc/pki/ca-trust/source/anchors/$CERTIFICATE_HASH.pem"
             sudo update-ca-trust
         else
             echo "Unsupported Linux distribution"
@@ -32,7 +27,7 @@ case "$OS_NAME" in
         ;;
     Darwin*)
         # macOS
-        sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "$CERTIFICATE_FILE_PATH"
+        sudo security delete-certificate -Z "$CERTIFICATE_HASH" /Library/Keychains/System.keychain
         ;;
     *)
         echo "Unsupported operating system: $OS_NAME"
@@ -40,5 +35,4 @@ case "$OS_NAME" in
         ;;
 esac
 
-echo "Certificate added successfully to the trust store."
-
+echo "Certificate with hash $CERTIFICATE_HASH removed successfully from the trust store."
