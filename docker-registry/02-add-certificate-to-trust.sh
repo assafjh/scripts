@@ -5,7 +5,7 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 #================ Variables ==============
-CERTIFICATE_FILE_PATH="$SCRIPT_DIR/certs/rootCA.pem"
+CERTIFICATE_FILE_PATH="$SCRIPT_DIR/certs/registry/docker-registry.crt"
 
 #================ Script ==============
 if [[ ! -f "$CERTIFICATE_FILE_PATH" ]]; then

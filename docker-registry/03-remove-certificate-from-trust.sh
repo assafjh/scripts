@@ -1,11 +1,8 @@
 #!/bin/bash
 # This script will remove the generated rootCA from the OS truststore
 
-#================ Internal ==============
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-
 #================ Variables ==============
-CERTIFICATE_HASH="$SCRIPT_DIR/certs/rootCA.pem"
+CERTIFICATE_HASH="docker-registry"
 
 #================ Script ==============
 OS_NAME=$(uname -s)
