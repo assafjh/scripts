@@ -5,7 +5,8 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) 
 source $SCRIPT_DIR/.env
 #================ Script ==============
-cd "$SCRIPT_DIR"/certs || exit 1
+[ -n "$BYPASS_OUTPUT_FOLDER_PATH" ] && OUTPUT_FOLDER_PATH="$BYPASS_OUTPUT_FOLDER_PATH"
+cd "$OUTPUT_FOLDER_PATH" || exit 1
 
 [ -n "$BYPASS_CA_CERTIFICATE_FILE_PATH" ] && CA_CERTIFICATE_FILE_PATH="$BYPASS_CA_CERTIFICATE_FILE_PATH"
 [ -n "$BYPASS_CA_KEY_FILE_PATH" ] && CA_KEY_FILE_PATH="$BYPASS_CA_KEY_FILE_PATH"
