@@ -34,7 +34,7 @@ docker run -d \
     --name registry \
     -v "$SCRIPT_DIR"/certs/registry:/certs \
     -v "$DATA_DIR":/var/lib/registry \
-    -e REGISTRY_HTTP_ADDR=0.0.0.0:"$REGISTRY_PORT" \
+    -e REGISTRY_HTTP_ADDR=0.0.0.0:443 \
     -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/docker-registry.crt \
     -e REGISTRY_HTTP_TLS_KEY=/certs/docker-registry.key \
     -p "$REGISTRY_PORT":443 \
