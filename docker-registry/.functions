@@ -1,0 +1,27 @@
+#!/bin/bash
+# Snippet that contains internal functions for scripts
+#========== Functions  ===============
+function check_if_command_exists {
+if command -v "$1" &> /dev/null
+then
+    return 0
+else
+    return 1
+fi
+}
+
+function create_san_ip_list() {
+    if $(check_if_command_exists ifconfig ); then
+        IP_LIST=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
+    elif $( check_if_command_exists "hostname -I" ); then
+        IP_LIST=$(hostname -I)
+    else
+        echo -ne "Please check that ifconfig or hostname -I are available. exiting"
+        exit 1
+    fi
+    ITERATOR=1
+    for val in $IP_LIST; do
+        echo -e "IP.$ITERATOR = $val"
+        ITERATOR=$((ITERATOR + 1))
+    done
+}

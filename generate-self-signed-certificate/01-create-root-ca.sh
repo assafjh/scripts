@@ -5,11 +5,13 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) 
 source $SCRIPT_DIR/.env
 #================ Script ==============
-[ ! -d "$SCRIPT_DIR/certs" ] && mkdir "$SCRIPT_DIR"/../certs
+[ -n "$BYPASS_OUTPUT_FOLDER_PATH" ] && OUTPUT_FOLDER_PATH="$BYPASS_OUTPUT_FOLDER_PATH"
+[ ! -d "$OUTPUT_FOLDER_PATH" ] && mkdir "$OUTPUT_FOLDER_PATH"
 
 [ -n "$BYPASS_CA_CN" ] && CA_CN="$BYPASS_CA_CN"
 
-cd "$SCRIPT_DIR"/certs || exit 1
+cd "$OUTPUT_FOLDER_PATH" || exit 1
+
 openssl req -x509 \
             -sha256 -days 3560 \
             -nodes \

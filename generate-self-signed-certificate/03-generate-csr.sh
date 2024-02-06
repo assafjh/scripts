@@ -5,10 +5,11 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) 
 source $SCRIPT_DIR/.env
 #================ Script ==============
-cd "$SCRIPT_DIR"/certs || exit 1
-
+[ -n "$BYPASS_OUTPUT_FOLDER_PATH" ] && OUTPUT_FOLDER_PATH="$BYPASS_OUTPUT_FOLDER_PATH"
 [ -n "$BYPASS_SERVER_KEY_FILE_PATH" ] && SERVER_KEY_FILE_PATH="$BYPASS_SERVER_KEY_FILE_PATH"
 [ -n "$BYPASS_SUBJECT_ALT_NAMES" ] && SUBJECT_ALT_NAMES="$BYPASS_SUBJECT_ALT_NAMES"
+
+cd "$OUTPUT_FOLDER_PATH" || exit 1
 
 openssl req -new -key "$SERVER_KEY_FILE_PATH" -out server.csr -config csr.conf
 
