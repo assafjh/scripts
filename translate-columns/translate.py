@@ -11,6 +11,7 @@ from collections import defaultdict
 from tqdm import tqdm
 from ratelimit import limits, sleep_and_retry
 from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type, RetryError
+import requests
 import pickle
 import time
 from concurrent.futures import ThreadPoolExecutor
