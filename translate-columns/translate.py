@@ -13,6 +13,8 @@ from ratelimit import limits, sleep_and_retry
 from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type, RetryError
 import pickle
 import time
+from concurrent.futures import ThreadPoolExecutor
+import threading
 
 # Configure command-line arguments
 parser = argparse.ArgumentParser(description='Translate columns in an Excel file.')
@@ -25,6 +27,7 @@ parser.add_argument('--target_lang', type=str, required=True, help='Target langu
 parser.add_argument('--header', type=int, default=0, help='Row number to use as column names (default is 0). Use None if there is no header.')
 parser.add_argument('--log', type=str, default='INFO', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help='Set the log level (default: INFO)')
 parser.add_argument('--cache_file', type=str, default='translation_cache.pkl', help='Path to the cache file.')
+parser.add_argument('--threads', type=int, default=8, help='Number of concurrent threads. (default: 4)')
 
 args = parser.parse_args()
 
@@ -43,7 +46,7 @@ console_handler.setLevel(logging.INFO)
 console_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 console_handler.setFormatter(console_formatter)
 
-logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=log_level, handlers=[file_handler, console_handler])
 
 # Initialize translator
 translator = GoogleTranslator(source=args.source_lang, target=args.target_lang)
@@ -71,6 +74,9 @@ if os.path.exists(args.cache_file):
 else:
     translation_cache = defaultdict(str)
 
+# Lock for thread-safe cache access
+cache_lock = threading.Lock()
+
 def column_letter_to_index(letter):
     """Convert a column letter (e.g., 'A', 'B', 'AA') to a zero-based index."""
     index = 0
@@ -93,16 +99,24 @@ def translate_texts(texts):
         batch = texts[i:i + batch_size]
         try:
             translations = translate_batch_with_limit(batch)
-            for original, translated in zip(batch, translations):
-                if translated is None:
-                    translated = original
-                translation_cache[original] = translated
-                translated_texts.append(translated)
+            with cache_lock:
+                for original, translated in zip(batch, translations):
+                    if translated is None:
+                        translated = original
+                    translation_cache[original] = translated
+                    translated_texts.append(translated)
         except RetryError as e:
             logging.error(f"Error during batch translation: {e}")
             translated_texts.extend([translation_cache.get(text, text) for text in batch])
         time.sleep(1)  # Add a delay to respect rate limits
     return translated_texts
+
+def process_chunk(chunk, source_columns, target_columns, df, progress_bar):
+    chunk_index, rows = chunk
+    for index, row in rows.iterrows():
+        process_row(index, row, source_columns, target_columns, df)
+        progress_bar.update(1)
+    return rows
 
 def process_row(index, row, source_columns, target_columns, df):
     for source_index, target_column_letter in zip(source_columns, target_columns):
@@ -142,8 +156,9 @@ def process_row(index, row, source_columns, target_columns, df):
 
 def save_cache():
     try:
-        with open(args.cache_file, 'wb') as f:
-            pickle.dump(translation_cache, f)
+        with cache_lock:
+            with open(args.cache_file, 'wb') as f:
+                pickle.dump(translation_cache, f)
         logging.info(f"Translation cache saved to {args.cache_file}")
     except Exception as e:
         logging.error(f"Error saving the cache file: {e}")
@@ -168,21 +183,25 @@ def main():
         return
 
     # Ensure target columns exist
-    for target_column_letter in target_columns:
-        target_index = column_letter_to_index(target_column_letter)
+    for target_column in target_columns:
+        target_index = column_letter_to_index(target_column)
         if target_index >= len(df.columns):
-            logging.info(f"Creating target column: {target_column_letter}")
+            logging.info(f"Creating target column: {target_column}")
             while len(df.columns) <= target_index:
                 df.loc[:, index_to_column_letter(len(df.columns))] = ""
 
-
-    # Process each row and translate the specified columns
-    logging.info(f"Starting translation of {len(df)} rows...")
-
-    with tqdm(total=len(df), desc="Translating rows") as pbar:
-        for index, row in df.iterrows():
-            process_row(index, row, source_columns, target_columns, df)
-            pbar.update(1)
+    # Divide DataFrame into chunks
+    chunk_size = len(df) // args.threads
+    chunks = [(i, df.iloc[i * chunk_size:(i + 1) * chunk_size]) for i in range(args.threads)]
+    
+    # Process each chunk concurrently
+    with ThreadPoolExecutor(max_workers=args.threads) as executor:
+        futures = []
+        with tqdm(total=len(df), desc="Translating rows") as pbar:
+            for chunk in chunks:
+                futures.append(executor.submit(process_chunk, chunk, source_columns, target_columns, df, pbar))
+            for future in futures:
+                future.result()
 
     # Save the translated DataFrame to an Excel file
     try:
