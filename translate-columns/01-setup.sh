@@ -15,13 +15,20 @@ fi
 echo "Installing dependencies from $REQUIREMENTS_FILE ..."
 pip3 install -r "$REQUIREMENTS_FILE"
 
-# Install NLTK data packages
-python3 -m nltk.downloader punkt
-
-# Check installation status
+# Check pip installation status
 EXIT_CODE=$?
 if [ $EXIT_CODE -ne 0 ]; then
     echo "Error: Failed to install dependencies. Exiting."
+    exit $EXIT_CODE
+fi
+
+# Install NLTK data packages
+python3 -m nltk.downloader punkt
+
+# Check NLTK downloader status
+EXIT_CODE=$?
+if [ $EXIT_CODE -ne 0 ]; then
+    echo "Error: Failed to download NLTK data. Exiting."
     exit $EXIT_CODE
 fi
 
