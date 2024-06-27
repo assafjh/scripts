@@ -3,7 +3,6 @@ transformers
 torch
 nltk
 tqdm
-ratelimit
 tenacity
 sentencepiece
 openpyxl
