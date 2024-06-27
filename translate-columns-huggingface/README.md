@@ -10,7 +10,6 @@ This project provides a script to translate columns in an Excel file using the H
 - torch
 - nltk
 - tqdm
-- ratelimit
 - tenacity
 - sentencepiece
 - openpyxl
