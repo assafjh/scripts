@@ -24,7 +24,8 @@ parser.add_argument('--target_lang', type=str, required=True, help='Target langu
 parser.add_argument('--header', type=int, default=0, help='Row number to use as column names (default is 0). Use None if there is no header.')
 parser.add_argument('--log', type=str, default='INFO', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help='Set the log level (default: INFO)')
 parser.add_argument('--cache_file', type=str, default='translation_cache.pkl', help='Path to the cache file.')
-parser.add_argument('--threads', type=int, default=8, help='Number of concurrent threads. (default: 4)')
+parser.add_argument('--threads', type=int, default=8, help='Number of concurrent threads. (default: 8)')
+parser.add_argument('--batch_size', type=int, default=32, help='Batch size for translation. (default: 32)')
 
 args = parser.parse_args()
 
@@ -66,7 +67,7 @@ def process_row(index, row, source_columns, target_columns, df):
                         if sentence in translation_cache:
                             translated_sentence = translation_cache[sentence]
                         else:
-                            translated_sentence = translate_texts([sentence], model, tokenizer, device, translation_cache)[0]
+                            translated_sentence = translate_texts([sentence], model, tokenizer, device, translation_cache, args.batch_size)[0]
                             translation_cache[sentence] = translated_sentence
                         translated_sentences.append(translated_sentence)
                     translated_text = ' '.join(translated_sentences)
