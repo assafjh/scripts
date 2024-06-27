@@ -19,6 +19,6 @@ if [ $? -ne 0 ]; then
 fi
 
 # Run the translate.py script with the specified arguments
-./translate.py --input /mnt/d/Desktop/translations/test.xlsx --output /mnt/d/Desktop/translations/scripts/translated.xlsx \
+src/translate.py --input /mnt/c/input.xlsx --output /mnt/c/output.xlsx \
 --source_columns B --target_columns D \
 --source_lang hu --target_lang de
